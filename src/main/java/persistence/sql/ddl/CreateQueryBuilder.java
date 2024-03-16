@@ -3,6 +3,7 @@ package persistence.sql.ddl;
 import java.util.stream.Collectors;
 import static persistence.sql.constant.SqlConstant.COMMA;
 import persistence.sql.dialect.Dialect;
+import persistence.sql.meta.RelationTable;
 import persistence.sql.meta.Table;
 
 public class CreateQueryBuilder {
@@ -26,14 +27,14 @@ public class CreateQueryBuilder {
     }
 
     private String generateColumnDefinitions(Table table) {
-        return table.getColumns()
+        return table.getSelectColumns()
             .stream()
             .map(fieldBuilder::generate)
             .collect(Collectors.joining(COMMA.getValue()));
     }
 
     private String generateRelationDefinitions(Table table) {
-        return Table.getRelationColumns(table)
+        return RelationTable.getRelationColumns(table)
             .stream()
             .map(entry -> fieldBuilder.generateRelation(entry.getKey(), entry.getValue()))
             .collect(Collectors.joining(COMMA.getValue()));

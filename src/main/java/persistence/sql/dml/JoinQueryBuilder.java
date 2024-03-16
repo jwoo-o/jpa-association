@@ -5,6 +5,7 @@ import java.util.Set;
 import static persistence.sql.constant.SqlConstant.DOT;
 import static persistence.sql.constant.SqlConstant.EMPTY;
 import persistence.sql.meta.Column;
+import persistence.sql.meta.RelationTable;
 import persistence.sql.meta.Table;
 
 public class JoinQueryBuilder {
@@ -23,7 +24,7 @@ public class JoinQueryBuilder {
     }
 
     public String generateLeftJoinQuery(Table root, Table relationTable) {
-        Set<Map.Entry<Table, Column>> relationColumn =  Table.getRelationColumns(relationTable);
+        Set<Map.Entry<Table, Column>> relationColumn =  RelationTable.getRelationColumns(relationTable);
         return relationColumn.stream()
             .filter(entry -> entry.getKey().equals(root))
             .map(entry -> String.format(LEFT_JOIN_DEFINITION, relationTable.getTableName(),

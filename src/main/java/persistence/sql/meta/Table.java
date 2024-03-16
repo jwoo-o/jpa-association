@@ -1,11 +1,9 @@
 package persistence.sql.meta;
 
 import jakarta.persistence.Entity;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.h2.util.StringUtils;
@@ -15,7 +13,6 @@ public class Table {
     private final Class<?> clazz;
     private final Columns columns;
     private static final Map<Class<?>, Table> cashTable = new ConcurrentHashMap<>();
-    private static final Map<Table, Set<Map.Entry<Table, Column>>> relationTable = new ConcurrentHashMap<>();
 
     private Table(Class<?> clazz, Columns columns) {
         this.clazz = clazz;
@@ -30,17 +27,19 @@ public class Table {
 
         Columns columns = Columns.from(clazz.getDeclaredFields());
         Table table = cashTable.computeIfAbsent(clazz, t -> new Table(clazz, columns));
-        setRelationTable(table, columns);
+        RelationTable.setRelationTable(table, columns);
 
         return table;
     }
 
-    public static Set<Map.Entry<Table, Column>> getRelationColumns(Table table) {
-        return relationTable.getOrDefault(table, Set.of());
+    private static void validate(Class<?> clazz) {
+        if (!clazz.isAnnotationPresent(Entity.class)) {
+            throw new IllegalArgumentException("엔티티 객체가 아닙니다.");
+        }
     }
 
-    public List<Column> getColumns() {
-        return columns.getSelectColumns();
+    public Class<?> getClazz() {
+        return clazz;
     }
 
     public String getTableName() {
@@ -76,12 +75,18 @@ public class Table {
     }
 
     public boolean isEagerRelationEmpty() {
-        return columns.getRelationColumns().isEmpty();
+        return columns.getEagerRelationColumns().isEmpty();
     }
 
     public List<Table> getEagerRelationTables() {
         return columns.getEagerRelationColumns()
             .stream().map(Column::getRelationTable)
+            .collect(Collectors.toList());
+    }
+
+    public List<Column> getLazyRelationColumns() {
+        return columns.getRelationColumns().stream()
+            .filter(column -> !column.isEagerRelationColumn())
             .collect(Collectors.toList());
     }
 
@@ -101,6 +106,18 @@ public class Table {
         columns.getIdColumn().setFieldValue(entity, id);
     }
 
+    public Object getRelationValue(Object entity, Table relationTable) {
+        return columns.getRelationColumns().stream()
+            .filter(column -> column.getRelationTable().equals(relationTable))
+            .findFirst()
+            .map(column -> column.getFieldValue(entity))
+            .orElseThrow(() -> new IllegalArgumentException("관계 컬럼이 존재하지 않습니다."));
+    }
+
+    public List<Object> getRelationValues(Object entity) {
+        return columns.getRelationValues(entity);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -112,27 +129,5 @@ public class Table {
     @Override
     public int hashCode() {
         return Objects.hash(clazz);
-    }
-
-    public List<Object> getRelationValues(Object entity) {
-        return columns.getRelationValues(entity);
-    }
-
-    private static void setRelationTable(Table root, Columns columns) {
-        columns.getRelationColumns().stream()
-            .filter(Column::isOneToMany)
-            .forEach(column -> {
-                Table table = column.getRelationTable();
-                if (!relationTable.containsKey(table)) {
-                    relationTable.put(table, new HashSet<>());
-                }
-                relationTable.get(table).add(Map.entry(root, column));
-            });
-    }
-
-    private static void validate(Class<?> clazz) {
-        if (!clazz.isAnnotationPresent(Entity.class)) {
-            throw new IllegalArgumentException("엔티티 객체가 아닙니다.");
-        }
     }
 }
