@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import static persistence.sql.constant.SqlConstant.COMMA;
 import persistence.sql.meta.Column;
+import persistence.sql.meta.RelationTable;
 import persistence.sql.meta.Table;
 
 public class InsertQueryBuilder {
@@ -32,7 +33,7 @@ public class InsertQueryBuilder {
         StringBuilder columnsBuilder = new StringBuilder(columnsClause(table.getInsertColumns()));
         StringBuilder valuesBuilder = new StringBuilder(valueClause(table.getInsertColumns(), entity));
 
-        String relationColumns = relationColumnsClause(Table.getRelationColumns(table), parent);
+        String relationColumns = relationColumnsClause(RelationTable.getRelationColumns(table), parent);
         String relationValues = relationValueClause(parent);
 
         if (!relationColumns.isEmpty()) {

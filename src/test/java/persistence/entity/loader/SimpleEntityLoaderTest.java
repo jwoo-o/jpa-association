@@ -53,7 +53,7 @@ class SimpleEntityLoaderTest {
         @Test
         void testFind() {
             // given
-            SimpleEntityLoader loader = SimpleEntityLoader.from(SimpleEntityManager.from(jdbcTemplate));
+            SimpleEntityLoader loader = SimpleEntityLoader.from(jdbcTemplate);
             Person sample = PersonFixture.createPerson();
             jdbcTemplate.execute(dmlGenerator.generateInsertQuery(sample));
             // when

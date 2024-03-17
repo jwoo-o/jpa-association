@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.h2.util.StringUtils;
@@ -102,15 +103,6 @@ public class Column {
     public void setFieldValue(Object object, Object value) {
         try {
             field.setAccessible(true);
-            if (Collection.class.isAssignableFrom(value.getClass())) {
-                field.set(object, value);
-                return;
-            }
-
-            if (Collection.class.isAssignableFrom(field.getType())) {
-                ((Collection) getFieldValue(object)).add(value);
-                return;
-            }
             field.set(object, value);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -147,5 +139,18 @@ public class Column {
             matchResult.group(1).toLowerCase(),
             matchResult.group(2).toUpperCase()
         )).toLowerCase();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Column column = (Column) o;
+        return Objects.equals(field, column.field);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(field);
     }
 }

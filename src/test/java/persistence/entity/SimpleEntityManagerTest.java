@@ -126,6 +126,8 @@ class SimpleEntityManagerTest {
             EntityManager manager = SimpleEntityManager.from(jdbcTemplate);
             Order foundOrder = manager.find(Order.class, 1L);
 
+            System.out.println(foundOrder.getOrderItems());
+
             // then
             assertAll(
                 () -> assertEquals(foundOrder, order),

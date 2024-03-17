@@ -16,6 +16,7 @@ public class JdbcTemplate {
     }
 
     public void execute(final String sql) {
+        System.out.println(sql);
         try (final Statement statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception e) {
@@ -24,6 +25,7 @@ public class JdbcTemplate {
     }
 
     public Object executeInsert(final String sql) {
+        System.out.println(sql);
         try (final Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql, RETURN_GENERATED_KEYS);
             ResultSet generatedKeys = statement.getGeneratedKeys();
@@ -35,6 +37,7 @@ public class JdbcTemplate {
     }
 
     public int executeUpdate(final String sql) {
+        System.out.println(sql);
         try (final Statement statement = connection.createStatement()) {
             return statement.executeUpdate(sql);
         } catch (Exception e) {
